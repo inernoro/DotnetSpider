@@ -1,203 +1,222 @@
-# DotnetSpider
+### 迁移整改方案步骤 ###
 
-免责申明：本框架是为了帮助开发人员简化开发流程、提高开发效率，请勿使用此框架做任何违法国家法律的事情，使用者所做任何事情也与本框架的作者无关。
 
-[![Build Status](https://dev.azure.com/zlzforever/DotnetSpider/_apis/build/status/dotnetcore.DotnetSpider?branchName=master)](https://dev.azure.com/zlzforever/DotnetSpider/_build/latest?definitionId=3&branchName=master)
-[![NuGet](https://img.shields.io/nuget/vpre/DotnetSpider.svg)](https://www.nuget.org/packages/DotnetSpider)
-[![Member project of .NET Core Community](https://img.shields.io/badge/member%20project%20of-NCC-9e20c9.svg)](https://github.com/dotnetcore)
-[![GitHub license](https://img.shields.io/github/license/dotnetcore/DotnetSpider.svg)](https://github.com/dotnetcore/DotnetSpider/blob/master/LICENSE.txt)
+----------
 
-DotnetSpider, a .NET Standard web crawling library. It is lightweight, efficient and fast high-level web crawling & scraping framework.
+# 一、类库项目
 
-If you want get latest beta packages, you should add the myget feed:
+>类库项目说明
 
-```
-<add key="myget.org" value="https://www.myget.org/F/zlzforever/api/v3/index.json" protocolVersion="3" />
-```
+此项目常用于被引用的类库，公共组件，公共类，新建此类项目以.net standard 2.0版本为标准依赖库，可同时兼容最低[.net framework 4.6.1](https://dotnet.microsoft.com/download/dotnet-framework/net461) 以及 [.netcore 3.1 ](https://dotnet.microsoft.com/download/dotnet/3.1) 兼容性列表如下图。
 
-### DESIGN
+<img width="500" src="img/net_standard_version.png">
 
-![DESIGN IMAGE](https://github.com/dotnetcore/DotnetSpider/blob/master/images/%E6%95%B0%E6%8D%AE%E9%87%87%E9%9B%86%E7%B3%BB%E7%BB%9F.png?raw=true)
+具体依赖可参考 [此处](https://docs.microsoft.com/zh-cn/dotnet/standard/net-standard)在我们的项目中，一般常见以MDB开头的项目，例如 **MDB** 、**MDB.CMC** 、**MDB.Customer**、 **MDB.FSS**、 **MDB.Goose**、 **MDB.Log**、  **MDB.UCC** 等。
 
-### DEVELOP ENVIROMENT
+> 快速启动
 
-1. Visual Studio 2017 (15.3 or later) or Jetbrains Rider
-2. [.NET Core 2.2 or later](https://www.microsoft.com/net/download/windows)
-3. Docker
-4. MySql
+- ①、新建类库项目，这里我们使用了 *C#* + *Linux* + *库* 作为筛选项，在以下列出的列表中，需要带有Linux与Windows标签，描述为： **一个用于创建面向，.NET Standard 或 .NET Core 的类库项目**。
 
-        docker run --name mysql -d -p 3306:3306 --restart always -e MYSQL_ROOT_PASSWORD=1qazZAQ! mysql:5.7
+<img width="500" src="img/create_lib.png">
 
-5. Redis (option)
 
-        docker run --name redis -d -p 6379:6379 --restart always redis
+- ②、选择.NET Standard版本为2.0即可，兼容性最好。
 
-6. SqlServer
+<img width="500" src="img/config_new_project_for_lib.png">
 
-        docker run --name sqlserver -d -p 1433:1433 --restart always  -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=1qazZAQ!' mcr.microsoft.com/mssql/server:2017-latest
+- ③、按需从Nuget中引入MDB类库的包，选择mdbcore
 
-8. PostgreSQL (option)
+此处就创建完成了，升级包体以及兼容性列表会在第三章节中具体描述
 
-        docker run --name postgres -d  -p 5432:5432 --restart always -e POSTGRES_PASSWORD=1qazZAQ! postgres
+# 二、Web项目
 
-9. MongoDb  (option)
 
-        docker run --name mongo -d -p 27017:27017 --restart always mongo
+- ①、这里我们使用了 *C#* + *Linux* + *Web* 作为筛选项，在以下列出的列表中，需要带有Linux与Windows标签，描述为： **用于创建包含RESTful HTTP服务器实力控制器的ASP.NET Core引用程序的模板。**
 
-10. RabbitMQ
+<img width="500" src="img/create_web_api.png">
 
-        docker run -d --restart always --name rabbimq -p 4369:4369 -p 5671-5672:5671-5672 -p 25672:25672 -p 15671-15672:15671-15672 \
-               -e RABBITMQ_DEFAULT_USER=user -e RABBITMQ_DEFAULT_PASS=password \
-               rabbitmq:3-management
+*使用此模板的好处在于无需自己添加Controller文件夹与startup启动类，更加方便直接上手修改项目，当然，对于更强定制的项目可以使用空模板来创建，但并不在此文的讨论范畴内*
 
-11. Docker remote api for mac
+- ②、引入Web专属鉴权类
+[ApiController](cs/ApiController.cs)、
+[ApiAuthorizeAttribute](cs/ApiAuthorizeAttribute.cs)、
+[AuthorizationManager](cs/AuthorizationManager.cs)、
+[ErrorCodes](cs/ErrorCodes.cs)、
+[ResponseResult](cs/ResponseResult.cs)、到web项目的根目录或web项目中任意能访问到的地方。
 
-        docker run -d  --restart always --name socat -v /var/run/docker.sock:/var/run/docker.sock -p 2376:2375 bobrik/socat TCP4-LISTEN:2375,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock
+<img width="300" src="img/setting_property_1.png">
+ 
 
-12. HBase
+- ③、在控制器中 继承 ApiController 类
 
-        docker run -d --restart always --name hbase -p 20550:8080 -p 8085:8085 -p 9090:9090 -p 9095:9095 -p 16010:16010 dajobe/hbase
-
-### MORE DOCUMENTS
-
-https://github.com/dotnetcore/DotnetSpider/wiki
-
-### SAMPLES
-
-    Please see the Project DotnetSpider.Sample in the solution.
-
-### BASE USAGE
-
-[Base usage Codes](https://github.com/zlzforever/DotnetSpider/blob/master/src/DotnetSpider.Sample/samples/BaseUsage.cs)
-
-### ADDITIONAL USAGE: Configurable Entity Spider
-
-[View complete Codes](https://github.com/zlzforever/DotnetSpider/blob/master/src/DotnetSpider.Sample/samples/EntitySpider.cs)
-
-		public class EntitySpider : Spider
+```C#
+		using Microsoft.AspNetCore.Mvc;
+		
+		namespace MDB.NewWeb.Controllers
 		{
-			public static async Task RunAsync()
-			{
-				var builder = Builder.CreateDefaultBuilder<EntitySpider>();
-				builder.UseSerilog();
-				builder.UseQueueDistinctBfsScheduler<HashSetDuplicateRemover>();
-				await builder.Build().RunAsync();
-			}
-
-			public EntitySpider(IOptions<SpiderOptions> options, SpiderServices services, ILogger<Spider> logger) : base(
-				options, services, logger)
-			{
-			}
-
-			protected override async Task InitializeAsync(CancellationToken stoppingToken)
-			{
-				AddDataFlow(new DataParser<CnblogsEntry>());
-				AddDataFlow(GetDefaultStorage());
-				await AddRequestsAsync(
-					new Request("https://news.cnblogs.com/n/page/1/", new Dictionary<string, string> {{"网站", "博客园"}}),
-					new Request("https://news.cnblogs.com/n/page/2/", new Dictionary<string, string> {{"网站", "博客园"}}));
-			}
-
-			protected override (string Id, string Name) GetIdAndName()
-			{
-				return (ObjectId.NewId.ToString(), "博客园");
-			}
-
-			[Schema("cnblogs", "news")]
-			[EntitySelector(Expression = ".//div[@class='news_block']", Type = SelectorType.XPath)]
-			[GlobalValueSelector(Expression = ".//a[@class='current']", Name = "类别", Type = SelectorType.XPath)]
-			[FollowRequestSelector(XPaths = new[] {"//div[@class='pager']"})]
-			public class CnblogsEntry : EntityBase<CnblogsEntry>
-			{
-				protected override void Configure()
-				{
-					HasIndex(x => x.Title);
-					HasIndex(x => new {x.WebSite, x.Guid}, true);
-				}
-
-				public int Id { get; set; }
-
-				[Required]
-				[StringLength(200)]
-				[ValueSelector(Expression = "类别", Type = SelectorType.Environment)]
-				public string Category { get; set; }
-
-				[Required]
-				[StringLength(200)]
-				[ValueSelector(Expression = "网站", Type = SelectorType.Environment)]
-				public string WebSite { get; set; }
-
-				[StringLength(200)]
-				[ValueSelector(Expression = "//title")]
-				[ReplaceFormatter(NewValue = "", OldValue = " - 博客园")]
-				public string Title { get; set; }
-
-				[StringLength(40)]
-				[ValueSelector(Expression = "GUID", Type = SelectorType.Environment)]
-				public string Guid { get; set; }
-
-				[ValueSelector(Expression = ".//h2[@class='news_entry']/a")]
-				public string News { get; set; }
-
-				[ValueSelector(Expression = ".//h2[@class='news_entry']/a/@href")]
-				public string Url { get; set; }
-
-				[ValueSelector(Expression = ".//div[@class='entry_summary']")]
-				public string PlainText { get; set; }
-
-				[ValueSelector(Expression = "DATETIME", Type = SelectorType.Environment)]
-				public DateTime CreationTime { get; set; }
-			}
+		    public class HomeController : ApiController
+		    {
+		        public JsonResult Index()
+		        {
+		            object obj = new object();
+		            return Json(obj);
+		        }
+		    }
 		}
+```
 
-#### Distributed spider
+
+- ④、再引入 [App.config](cs/App.config)到**根目录**下、其中app.config并不是所谓的配置文件，而是为了兼容老版本的携程配置文件app.config而存在，引入在项目根目录 **解决方案下**，并将属性设置为**始终复制**。
+
+<img width="500" src="img/setting_property.png">
+
+- ⑤、配置 [App.config](cs/App.config) 相较于之前版本有些许字段差别，但具体差别不大，多多注意**Apollo.AppId**与**Apollo.DEV.Meta**。
+
+```xml
+    	<?xml version="1.0" encoding="utf-8"?>
+    	<configuration>
+    		<appSettings>
+    			<add key="Env" value="DEV" />
+    			<add key="Apollo.AppId" value="B100008" />
+    			<add key="Apollo.DEV.Meta" value="http://192.168.5.219:8080/" />
+    			<!--单位为分钟/多少分钟拉去一次，默认毫秒-->
+    			<add key="Apollo.RefreshInterval" value="120000" />
+    			<!--超时时间，单位未知-->
+    			<add key="Apollo.Timeout" value="2000" />
+    			<add key="Cachefolder" value="C:/opt/data" />
+    		</appSettings>
+    	</configuration>
+```
 
 
-[Read this document](https://github.com/dotnetcore/DotnetSpider/wiki/3-Distributed-Spider)
 
-#### Puppeteer downloader
 
-Coming soon
+- 快速创建结束：到此处基本的项目创建部分就已经完成了，且可以使用mdb的类库进行操作，下章节主要是类库版本的变化与需要注意的几个点
 
-### NOTICE
 
-#### when you use redis scheduler, please update your redis config:
+# 三、类库版本变化与参考的修改方式经验
 
-    timeout 0
-    tcp-keepalive 60
+### ①、cookie获取与设置的变化
 
- ### Dependencies
+*请注意，以下更新若无涉及到则无需更改，前二章节已涵盖了创建步骤的基本操作，以下只作为dotnet升级为dotnetcore版本的提示信息，简易修改方式与作者在mdb中总结的一些经验*
 
-| Package | License |
-| --- | --- |
-| Bert.RateLimiters | Apache 2.0 |
- | MessagePack  |  MIT   |
- | Newtonsoft.Json  |  MIT   |
- | Dapper  |  Apache 2.0   |
- | HtmlAgilityPack  |  MIT   |
- | ZCJ.HashedWheelTimer  |  MIT   |
- | murmurhash  |  Apache 2.0   |
- | Serilog.AspNetCore  |  Apache 2.0   |
- | Serilog.Sinks.Console  |  Apache 2.0   |
- | Serilog.Sinks.RollingFile  |  Apache 2.0   |
- | Serilog.Sinks.PeriodicBatching  |  Apache 2.0   |
- | MongoDB.Driver  |  Apache 2.0   |
- | MySqlConnector  |  MIT   |
- | AutoMapper.Extensions.Microsoft.DependencyInjection  | MIT   |
- | Docker.DotNet  |  MIT   |
- | BuildBundlerMinifier  |  Apache 2.0   |
- | Pomelo.EntityFrameworkCore.MySql  |  MIT   |
- | Quartz.AspNetCore  |  Apache 2.0    |
- | Quartz.AspNetCore.MySqlConnector  | Apache 2.0  |
- | Npgsql  |  PostgreSQL License   |
- | RabbitMQ.Client  |  Apache 2.0   |
- | Polly  | BSD 3-C   |
+> 更新前
 
-### Buy me a coffee
+```C#
+	string cookieValue = "";
+	HttpCookie cookie = HttpContext.Current.Request.Cookies[_name];
+	if (cookie != null)
+	{
+		cookie.Domain = _domain;
+		if (cookie.Value != null)
+		{
+			cookieValue = cookie.Value;
+		}
+	}
+```
 
-![](https://github.com/zlzforever/ClickHouseMigrator/raw/master/images/alipay.jpeg)
 
-### AREAS FOR IMPROVEMENTS
+> 更新后
 
-QQ Group: 477731655
-Email: zlzforever@163.com
+	string cookies = _httpContext.Request.Cookies[_name];
+
+### ②、常用的web函数的变化
+
+> 更新前使用该函数来获取当前请求上下文
+
+	var Request = HttpContext.Current.Request;
+
+> 更新后则使用依赖注入或在ApiController中传入 HttpContext 来供第三方库操作当前请求上下文
+
+```C#
+public SSOCookieProvider(HttpContext context)
+{
+        this._httpContext = context;
+}
+```
+
+### ③、常用的类库之间的变化
+请注意，所有类库的版本已做过调试，且向下兼容，创建项目后使用以下组建的需要 **绝对对应** 切勿更改版本或使用错误的版本产生不必要的问题，如果出现一对多的关系，则是之前的项目被第三方发布的新版拆分为了两个项目。
+
+|操作|原类库| 原版本| 现类库 | 现版本|说明
+|----|----|----|----|----|----|
+|更新| Apollo_Config_Clien   | 1.0.0| Com.Ctrip.Framework.Apollo | 1.5.3|携程库
+|更新| Apollo_Config_Clien   | 1.0.0| Com.Ctrip.Framework.Apollo.Configuration.Manager | 1.5.5|携程扩展库
+|更新| Qiniu|7.2.15.0|Qiniu.Net|8.0.0|七牛库
+|更新|StackExchange.Redis|1.2.0|StackExchange.Redis|2.2.4|redis库
+|更新|Newtonsoft.Json|11.0.0.0|Newtonsoft.Json|13.0.1|json库
+|删除|Microsoft.VisualBasic|10.0.0.0|CHTCHSConv|1.0.0|繁简体转换库
+|更新|HtmlAgilityPack|1.0.14|HtmlAgilityPack|1.11.30.0|解析html
+|更新|NPOI|2.5.2.0|NPOI|2.5.2|EXCEL操作类
+|更新|ICSharpCode.SharpZipLib|1.3.1.9|SharpZipLib|1.3.1|Zip文件使用
+|更新|Gma.QrCodeNet.Encoding|0.4.0.0|Gma.QrCodeNet.Encoding|2.0.0|二维码
+|更名|BouncyCastle.Crypto|1.8.6.0|Portable.BouncyCastle|1.8.10|加解密
+
+### 四、其他补充
+
+####一、中繁转换的变更代码
+
+`使用的类库为 CHTCHSConv.dll`
+
+> 中繁转换之前
+
+```C#
+_wordList.Add(Microsoft.VisualBasic.Strings.StrConv(key,Microsoft.VisualBasic.VbStrConv.TraditionalChinese, 0));
+```
+
+> 中繁转换之后
+
+```C#
+ChineseConverter.Convert(key, ChineseConversionDirection.SimplifiedToTraditional);
+```
+
+####二、需要安装的类库和建议的工具与学习地址
+[dotnet core3.1下载地址](https://dotnet.microsoft.com/download/dotnet/3.1)
+<br/>
+[visualstudio2019下载地址](https://visualstudio.microsoft.com/zh-hans/downloads/)
+<br/>
+[dotnetcore教程](https://docs.microsoft.com/zh-cn/aspnet/core/tutorials/razor-pages/razor-pages-start?view=aspnetcore-5.0&tabs=visual-studio)
+
+###三、docker 部分
+
+>使用docker可直接在项目中右键创建Docker支持
+
+<img width="500" src="img/create_docker.png">
+
+*创建后的Docker文件如下*
+
+> DockerFile参考
+
+```DockerFile
+	FROM mcr.microsoft.com/dotnet/aspnet:3.1 AS base
+	WORKDIR /app
+	EXPOSE 80
+	
+	FROM mcr.microsoft.com/dotnet/sdk:3.1 AS build
+	WORKDIR /src
+	COPY ["AssetCenter.Api/AssetCenter.Api.csproj", "AssetCenter.Api/"]
+	COPY ["AssetCenter.BLL/AssetCenter.BLL.csproj", "AssetCenter.BLL/"]
+	COPY ["mdb/MDB.Account/MDB.Customer.csproj", "mdb/MDB.Account/"]
+	COPY ["mdb/MDB.CMC/MDB.CMC.csproj", "mdb/MDB.CMC/"]
+	COPY ["mdb/MDB/MDB.csproj", "mdb/MDB/"]
+	COPY ["mdb/MDB.UCC/MDB.UCC.csproj", "mdb/MDB.UCC/"]
+	COPY ["mdb/MDB.Log/MDB.Log.csproj", "mdb/MDB.Log/"]
+	COPY ["mdb/MDB.Goose/MDB.Goose.csproj", "mdb/MDB.Goose/"]
+	COPY ["mdb/MDB.FSS/MDB.FSS.csproj", "mdb/MDB.FSS/"]
+	COPY ["AssetCenter.Common/AssetCenter.Common.csproj", "AssetCenter.Common/"]
+	COPY ["mdb/MDB.OperLog/MDB.OperLog.csproj", "mdb/MDB.OperLog/"]
+	RUN dotnet restore "AssetCenter.Api/AssetCenter.Api.csproj"
+	COPY . .
+	WORKDIR "/src/AssetCenter.Api"
+	RUN dotnet build "AssetCenter.Api.csproj" -c Release -o /app/build
+	
+	FROM build AS publish
+	RUN dotnet publish "AssetCenter.Api.csproj" -c Release -o /app/publish
+	
+	FROM base AS final
+	WORKDIR /app
+	COPY --from=publish /app/publish .
+	ENTRYPOINT ["dotnet", "AssetCenter.Api.dll"]
+```
+------
+
